@@ -70,6 +70,7 @@ if (info) {
 
 onMounted(() => {
   setTimeout(() => {
+    isLoading.value = false
     startCountdown()
   }, 5000)
 })
