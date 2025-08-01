@@ -1,0 +1,54 @@
+name: Deploy Frontend to GCP VM using nginx
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Prepare frontend build folder (flatten dist/)
+        run: |
+          rm -rf frontend-build
+          mkdir frontend-build
+          cp -r dist/. frontend-build/    # dist 내부 컨텐츠만 복사
+
+      - name: Check frontend-build contents
+        run: ls -al frontend-build
+
+      - name: Deploy via SCP to GCP VM
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_SERVER_HOST }}
+          username: ${{ secrets.DEPLOY_SERVER_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: 'frontend-build/*'
+          target: '~/frontend-temp'
+
+      - name: SSH into GCP VM and move to /var/www/html
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_SERVER_HOST }}
+          username: ${{ secrets.DEPLOY_SERVER_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            sudo rm -rf /var/www/html/*
+            sudo mv ~/frontend-temp/* /var/www/html/
+
+            sudo chown -R www-data:www-data /var/www/html
+            sudo find /var/www/html -type d -exec chmod 755 {} \;
+            sudo find /var/www/html -type f -exec chmod 644 {} \;
+
+            sudo nginx -t
+            sudo systemctl reload nginx
