@@ -59,29 +59,13 @@
             </div>
           </div>
         </div>
-
-        <!-- 자동 리다이렉트 정보 -->
-        <div class="redirect-card">
-          <div class="redirect-content">
-            <Clock class="w-5 h-5" />
-            <div class="redirect-text">
-              <p>{{ redirectCountdown }}초 후 자동으로 창이 닫힙니다</p>
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  :style="{ width: `${((5 - redirectCountdown) / 5) * 100}%` }"
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { CheckCircle, Hash, User, Calendar, Clock } from 'lucide-vue-next'
 
 const redirectCountdown = ref(5)
@@ -102,26 +86,6 @@ if (encoded) {
   console.log(userImage.value)
 }
 
-onMounted(() => {
-  startCountdown()
-})
-
-const startCountdown = () => {
-  countdownTimer = setInterval(() => {
-    if (redirectCountdown.value > 0) {
-      redirectCountdown.value--
-    } else {
-      clearInterval(countdownTimer)
-      handleAutoRedirect()
-    }
-  }, 1000)
-}
-
-const handleAutoRedirect = () => {
-  self.opener = self
-  window.close()
-}
-
 const formatDate = (date) => {
   return date.toLocaleString('ko-KR', {
     month: '2-digit',
@@ -130,12 +94,6 @@ const formatDate = (date) => {
     minute: '2-digit',
   })
 }
-
-onUnmounted(() => {
-  if (countdownTimer) {
-    clearInterval(countdownTimer)
-  }
-})
 </script>
 
 <style scoped>
