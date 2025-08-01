@@ -21,47 +21,27 @@
         </div>
 
         <!-- 사용자 정보 -->
-        <div v-if="userInfo" class="user-card">
+        <div v-if="guildNm" class="user-card">
+          <h2>채널 정보</h2>
+          <div class="user-info">
+            <div class="user-details">
+              <h3>{{ guildNm }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="userNm" class="user-card">
           <h2>계정 정보</h2>
           <div class="user-info">
-            <div class="avatar">
-              <img v-if="userInfo.picture" :src="userInfo.picture" :alt="userInfo.name" />
-              <UserIcon v-else />
-            </div>
             <div class="user-details">
-              <h3>{{ userInfo.name }}</h3>
-              <div class="email-info">
-                <MailIcon />
-                <span>{{ userInfo.email }}</span>
-                <span v-if="userInfo.verified_email" class="verified-badge">인증됨</span>
-              </div>
+              <h3>{{ userName }}</h3>
+              <div class="email-info"></div>
               <div class="login-time">
                 <CalendarIcon />
                 <span>로그인: {{ formatDate(loginTime) }}</span>
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- 액션 버튼들 -->
-        <div class="actions-card">
-          <h2>다음 단계</h2>
-          <p>계정 설정을 완료하거나 바로 시작하세요</p>
-          <div class="buttons">
-            <button @click="handleContinue" class="primary-button">
-              <ArrowRightIcon />
-              대시보드로 이동
-            </button>
-            <button @click="handleProfileSetup" class="secondary-button">프로필 설정하기</button>
-          </div>
-        </div>
-
-        <!-- 자동 리다이렉션 안내 -->
-        <div class="redirect-info">
-          <p v-if="redirectCountdown > 0">
-            {{ redirectCountdown }}초 후 자동으로 대시보드로 이동합니다
-          </p>
-          <p v-else>리다이렉션 중...</p>
         </div>
       </div>
     </div>
@@ -70,27 +50,28 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { CheckCircleIcon, UserIcon, MailIcon, CalendarIcon, ArrowRightIcon } from 'lucide-vue-next'
 
-const userInfo = ref(null)
 const isLoading = ref(true)
 const redirectCountdown = ref(5)
 const loginTime = ref(new Date())
 let countdownTimer = null
 
-onMounted(() => {
-  const mockUserInfo = {
-    name: '김철수',
-    email: 'kimcs@gmail.com',
-    picture: '/placeholder.svg?height=80&width=80&text=Profile',
-    verified_email: true,
-  }
+const urlParams = new URLSearchParams(window.location.search)
+const info = urlParams.get('info')
+const userNm = ref('')
+const guildNm = ref('')
 
+if (info) {
+  const decoded = atob(info)
+  const [userName, guildName] = decoded.split(':')
+  userNm.value = userName
+  guildNm.value = guildName
+}
+
+onMounted(() => {
   setTimeout(() => {
-    userInfo.value = mockUserInfo
-    isLoading.value = false
     startCountdown()
-  }, 1000)
+  }, 5000)
 })
 
 const startCountdown = () => {
@@ -105,17 +86,7 @@ const startCountdown = () => {
 }
 
 const handleAutoRedirect = () => {
-  console.log('Auto redirecting to dashboard...')
-}
-
-const handleContinue = () => {
-  clearInterval(countdownTimer)
-  console.log('Navigating to dashboard...')
-}
-
-const handleProfileSetup = () => {
-  clearInterval(countdownTimer)
-  console.log('Navigating to profile setup...')
+  window.close()
 }
 
 const formatDate = (date) => {
