@@ -118,6 +118,7 @@ const startCountdown = () => {
 }
 
 const handleAutoRedirect = () => {
+  self.opener = self
   window.close()
 }
 
